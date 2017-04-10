@@ -334,6 +334,12 @@ static MyTaskManager *taskManager = nil;
  执行任务
  */
 -(void)startAll{
+    //将所有任务状态更改为等待下载
+    for (MyTask *tpTask in self.downloadingTasks) {
+        if (tpTask.state != Downloading || tpTask.state != WillDownload) {
+            [tpTask setValue:[NSNumber numberWithUnsignedInteger:WatingDownload] forKey:@"state"];
+        }
+    }
     [self runTask];
 }
 
@@ -418,7 +424,7 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
     NSString *tmpPath = [task valueForKey:@"tmpPath"];
     if (tmpPath && tmpPath.length>0) {
         //已在缓存中，则从缓存中继续下载；
-        NSData *tmpData = [NSData dataWithContentsOfFile:[NSHomeDirectory() stringByAppendingPathComponent:tmpPath]];
+        NSData *tmpData = [NSData dataWithContentsOfFile:[NSTemporaryDirectory() stringByAppendingPathComponent:tmpPath]];
         if (tmpData) {
             NSMutableDictionary *resumeDataDict = [NSMutableDictionary dictionary];
             NSMutableURLRequest *newResumeRequest = [NSMutableURLRequest requestWithURL:task.url];
@@ -752,7 +758,7 @@ completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *e
                 if([@"path" isEqualToString:downloadFilepropertyName]){
                     id downloadFilepropertyValue = [propertyValue valueForKey:(NSString *)downloadFilepropertyName];
                     if(downloadFilepropertyValue){
-                        NSString *tmpPath = [downloadFilepropertyValue stringByReplacingOccurrencesOfString:NSHomeDirectory() withString:@""];
+                        NSString *tmpPath = [downloadFilepropertyValue stringByReplacingOccurrencesOfString:NSTemporaryDirectory() withString:@""];
                         [task setValue:tmpPath forKey:@"tmpPath"];
                     }
                     break;
